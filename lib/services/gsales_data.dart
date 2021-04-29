@@ -15,27 +15,31 @@ class GreenSalesData {
     requestHeaders = {"cookie": prefs.getString("session-cookie")};
   }
 
-  Future<void> loginUser(String email, String password) async {
+  Future<int> loginUser(String email, String password) async {
     Map<String, String> headers = {};
 
     Map<String, String> body = {"email": email, "password": password};
 
-    //posts the login form to the backend
-    Response response = await post('http://192.168.0.173:5000/login',
-        headers: headers, body: body);
+    try {
+      //posts the login form to the backend
+      Response response = await post('http://192.168.0.173:5000/test-login',
+          headers: headers, body: body);
 
-    //gets the session cookie from the response and stores it in the request headers
-    //that will be used for future requests
-    String sessionCookie = response.headers["set-cookie"];
-    requestHeaders = {"cookie": sessionCookie};
+      //gets the session cookie from the response and stores it in the request headers
+      //that will be used for future requests
+      String sessionCookie = response.headers["set-cookie"];
+      requestHeaders = {"cookie": sessionCookie};
 
-    //stores the session cookie in the shared preferences
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString("session-cookie", sessionCookie);
-    /*
-    response = await get('http://192.168.0.173:5000/pedido/get-list',
-        headers: {"cookie": prefs.getString("session-cookie")});
-    print(response.body);*/
+      //stores the session cookie in the shared preferences
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString("session-cookie", sessionCookie);
+
+      return response.statusCode;
+    } catch (e) {
+      print("Error logging in: $e");
+    }
+
+    return 0;
   }
 
   Future<void> logout() async {

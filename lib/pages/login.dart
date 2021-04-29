@@ -110,8 +110,16 @@ class _LoginState extends State<Login> {
                     )),
                 TextButton(
                     onPressed: () async {
-                      await greenSalesData.loginUser(
+                      int status = await greenSalesData.loginUser(
                           emailController.text, passwordController.text);
+                      if (status == 401) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("Usuário ou senha incorretos")));
+                      } else if (status == 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text("Houve um problema de conexão")));
+                      }
+
                       bool isLoggedIn = await greenSalesData.isLoggedIn();
                       if (isLoggedIn) {
                         Navigator.pushReplacementNamed(context, '/home');

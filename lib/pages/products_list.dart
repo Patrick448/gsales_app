@@ -95,6 +95,24 @@ class _ProductsListState extends State<ProductsList> {
         });
   }
 
+  void showProductQuantityDialog(Product product, BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          dialogTextEditingControler = TextEditingController();
+          return QuantityPromptDialog(
+              controller: dialogTextEditingControler,
+              price: product.price,
+              name: product.name,
+              onTapOk: () {
+                setState(() {
+                  product.quant = int.parse(dialogTextEditingControler.text);
+                  addProductToOrder(product);
+                });
+              });
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,23 +197,7 @@ class _ProductsListState extends State<ProductsList> {
                     return ProductCardOnDisplay(
                         product: products[index],
                         onTap: () {
-                          showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                dialogTextEditingControler =
-                                    TextEditingController();
-                                return QuantityPromptDialog(
-                                    controller: dialogTextEditingControler,
-                                    price: products[index].price,
-                                    name: products[index].name,
-                                    onTapOk: () {
-                                      setState(() {
-                                        products[index].quant = int.parse(
-                                            dialogTextEditingControler.text);
-                                        addProductToOrder(products[index]);
-                                      });
-                                    });
-                              });
+                          showProductQuantityDialog(products[index], context);
                         });
                   },
                 ),

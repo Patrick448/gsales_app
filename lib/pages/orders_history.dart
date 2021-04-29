@@ -14,9 +14,6 @@ class _OrdersHistoryState extends State<OrdersHistory> {
   List<Order> orders = [];
   bool isLoading = true;
 
-  DateTime initialFilterDate = DateTime(2000);
-  DateTime finalFilterDate = DateTime(2001);
-
   void getData() async {
     GreenSalesData greenSalesData = GreenSalesData();
     await greenSalesData.loadSession();
@@ -28,6 +25,71 @@ class _OrdersHistoryState extends State<OrdersHistory> {
       isLoading = false;
     });
   }
+
+  Future<void> getFilteredOrders(DateTime timeFrom, DateTime timeTo) async {
+    GreenSalesData greenSalesData = GreenSalesData();
+    await greenSalesData.loadSession();
+    List<Order> filteredOrderList = await greenSalesData.getOrdersFiltered(
+        timeFrom, timeTo.add(Duration(seconds: 86399)));
+
+    setState(() {
+      orders = filteredOrderList;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Green Sales"),
+          backgroundColor: Colors.greenAccent[400],
+          centerTitle: true,
+          elevation: 0,
+        ),
+        body: isLoading
+            ? Container(
+                child: SpinKitRing(color: Colors.greenAccent[400], size: 50.0))
+            : Column(
+                children: [
+                  OrderFilters(
+                    callback: getFilteredOrders,
+                    refreshAction: () {
+                      getData();
+                    },
+                  ),
+                  Expanded(
+                      child: ListView.builder(
+                          itemCount: orders.length,
+                          itemBuilder: (context, index) {
+                            return OrderCard(order: orders[index]);
+                          }))
+                ],
+              ));
+  }
+}
+
+class OrderFilters extends StatefulWidget {
+  //final DateTime initialFilterDate;
+  //final DateTime finalFilterDate;
+  final Function callback;
+  final Function refreshAction;
+
+  OrderFilters({this.callback, this.refreshAction});
+
+  @override
+  _OrderFiltersState createState() => _OrderFiltersState();
+}
+
+class _OrderFiltersState extends State<OrderFilters> {
+  bool filtersOpen = false;
+  DateTime initialFilterDate;
+  DateTime finalFilterDate;
 
   void initFilterDates() {
     DateTime currentTime = DateTime.now();
@@ -55,73 +117,73 @@ class _OrdersHistoryState extends State<OrdersHistory> {
   void initState() {
     super.initState();
     initFilterDates();
-    getData();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Green Sales"),
-          backgroundColor: Colors.greenAccent[400],
-          centerTitle: true,
-          elevation: 0,
-        ),
-        body: isLoading
-            ? Container(
-                child: SpinKitRing(color: Colors.greenAccent[400], size: 50.0))
-            : Column(
-                children: [
-                  Container(
-                      child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text("Filtrar de "),
-                      TextButton(
-                        child: Text(formatDate(initialFilterDate)),
-                        onPressed: () async {
-                          DateTime dateFromUser = await askDate();
-                          if (dateFromUser != null)
-                            setState(() {
-                              initialFilterDate = dateFromUser;
-                            });
+    return Container(
+        child: filtersOpen
+            ? Column(children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text("Filtrar de "),
+                    TextButton(
+                      child: Text(formatDate(initialFilterDate)),
+                      onPressed: () async {
+                        DateTime dateFromUser = await askDate();
+                        if (dateFromUser != null)
+                          setState(() {
+                            initialFilterDate = dateFromUser;
+                          });
+                      },
+                    ),
+                    Text("até"),
+                    TextButton(
+                      child: Text(formatDate(finalFilterDate)),
+                      onPressed: () async {
+                        DateTime dateFromUser = await askDate();
+                        if (dateFromUser != null)
+                          setState(() {
+                            finalFilterDate = dateFromUser;
+                          });
+                      },
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          widget.callback(initialFilterDate, finalFilterDate);
                         },
-                      ),
-                      Text("até"),
-                      TextButton(
-                        child: Text(formatDate(finalFilterDate)),
-                        onPressed: () async {
-                          DateTime dateFromUser = await askDate();
-                          if (dateFromUser != null)
-                            setState(() {
-                              finalFilterDate = dateFromUser;
-                            });
+                        child: Text("Ok"))
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          widget.refreshAction();
                         },
-                      ),
-                      TextButton(
-                          onPressed: () async {
-                            GreenSalesData greenSalesData = GreenSalesData();
-                            await greenSalesData.loadSession();
-                            List<Order> filteredOrderList =
-                                await greenSalesData.getOrdersFiltered(
-                                    initialFilterDate,
-                                    finalFilterDate
-                                        .add(Duration(seconds: 86399)));
-
-                            setState(() {
-                              orders = filteredOrderList;
-                            });
-                          },
-                          child: Text("Ok"))
-                    ],
-                  )),
-                  Expanded(
-                      child: ListView.builder(
-                          itemCount: orders.length,
-                          itemBuilder: (context, index) {
-                            return OrderCard(order: orders[index]);
-                          }))
-                ],
-              ));
+                        icon: Icon(Icons.refresh, color: Colors.grey[600])),
+                  ],
+                ),
+                TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        filtersOpen = false;
+                      });
+                    },
+                    label: Text("Fechar"),
+                    icon: Icon(Icons.arrow_drop_up))
+              ])
+            : TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    filtersOpen = true;
+                  });
+                },
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                ),
+                label: Text("Filtros")));
   }
 }

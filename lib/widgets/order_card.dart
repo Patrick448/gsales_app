@@ -33,7 +33,7 @@ class OrderCard extends StatelessWidget {
                           style: TextStyle(
                               fontSize: 17.0,
                               color: Colors.grey[700],
-                              fontWeight: FontWeight.bold)),
+                              fontWeight: FontWeight.normal)),
                       Text(formatDateFromMillisseconds(order.dateMillisseconds),
                           style: TextStyle(
                               fontSize: 15.0, color: Colors.grey[700]))
@@ -44,7 +44,7 @@ class OrderCard extends StatelessWidget {
                     children: [
                       Text(formatCurrencyReal(order.totalValue),
                           style: TextStyle(
-                              fontSize: 17.0,
+                              fontSize: 16.0,
                               color: Colors.green[500],
                               fontWeight: FontWeight.bold)),
                       Text("${order.products.length} itens",
