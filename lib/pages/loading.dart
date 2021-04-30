@@ -11,6 +11,8 @@ class Loading extends StatefulWidget {
 void checkLoggedInAndRoute(BuildContext context) async {
   GreenSalesData greenSalesData = GreenSalesData();
   final prefs = await SharedPreferences.getInstance();
+  //this line erases the session token, so that the user has to log in everytime
+  //kept for testing reasons
   prefs.remove("session-cookie");
   await greenSalesData.loadSession();
 

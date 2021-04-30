@@ -36,7 +36,8 @@ class _LoginState extends State<Login> {
         body: Container(
             color: Colors.greenAccent[400],
             child: Center(
-                child: Column(
+                child: Form(
+                    child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -60,9 +61,15 @@ class _LoginState extends State<Login> {
                     )),
                 Padding(
                     padding: EdgeInsets.fromLTRB(30.0, 15.0, 30.0, 0.0),
-                    child: TextField(
+                    child: TextFormField(
                       controller: emailController,
                       cursorColor: Colors.white,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        //TODO: implement validator
+
+                        return null;
+                      },
                       decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white.withAlpha(80),
@@ -85,10 +92,15 @@ class _LoginState extends State<Login> {
                     )),
                 Padding(
                     padding: EdgeInsets.fromLTRB(30.0, 15.0, 30.0, 20.0),
-                    child: TextField(
+                    child: TextFormField(
                       controller: passwordController,
                       cursorColor: Colors.white,
                       obscureText: true,
+                      validator: (value) {
+                        //TODO: implement validator
+
+                        return null;
+                      },
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white.withAlpha(80),
@@ -118,6 +130,9 @@ class _LoginState extends State<Login> {
                       } else if (status == 0) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                             content: Text("Houve um problema de conexão")));
+                      } else if (status != 200) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Erro desconhecido")));
                       }
 
                       bool isLoggedIn = await greenSalesData.isLoggedIn();
@@ -130,6 +145,6 @@ class _LoginState extends State<Login> {
                       style: TextStyle(color: Colors.white, fontSize: 18.0),
                     ))
               ],
-            ))));
+            )))));
   }
 }

@@ -183,7 +183,7 @@ class _ProductsListState extends State<ProductsList> {
                           ],
                         ))
                 ]),
-                maxHeight: 500.0,
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
                 minHeight: 50.0,
                 controller: panelController,
                 backdropEnabled: true,

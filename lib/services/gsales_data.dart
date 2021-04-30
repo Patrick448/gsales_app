@@ -8,6 +8,12 @@ class GreenSalesData {
   List<Product> products;
   Map<String, String> requestHeaders = {};
 
+  //urls to the server hosted online and to the one hosted locally
+  static String webUrl = "http://patrick448.pythonanywhere.com";
+  static String localUrl = "http://192.168.0.173:5000";
+  //url currently being used by the app
+  String url = localUrl;
+
   GreenSalesData() {}
 
   Future<void> loadSession() async {
@@ -22,8 +28,8 @@ class GreenSalesData {
 
     try {
       //posts the login form to the backend
-      Response response = await post('http://192.168.0.173:5000/test-login',
-          headers: headers, body: body);
+      Response response =
+          await post('$url/test-login', headers: headers, body: body);
 
       //gets the session cookie from the response and stores it in the request headers
       //that will be used for future requests
@@ -34,6 +40,7 @@ class GreenSalesData {
       final prefs = await SharedPreferences.getInstance();
       prefs.setString("session-cookie", sessionCookie);
 
+      print("Login request returned ${response.statusCode}");
       return response.statusCode;
     } catch (e) {
       print("Error logging in: $e");
@@ -42,15 +49,15 @@ class GreenSalesData {
     return 0;
   }
 
-  Future<void> logout() async {
-    Response response =
-        await get('http://192.168.0.173:5000/logout', headers: requestHeaders);
+  Future<bool> logout() async {
+    Response response = await get('$url/logout', headers: requestHeaders);
+    return response.statusCode == 200;
   }
 
   Future<bool> isLoggedIn() async {
     try {
-      Response response = await get('http://192.168.0.173:5000/check-logged-in',
-          headers: requestHeaders);
+      Response response =
+          await get('$url/check-logged-in', headers: requestHeaders);
       return jsonDecode(response.body)['logged_in'];
     } catch (e) {
       return false;
@@ -58,8 +65,8 @@ class GreenSalesData {
   }
 
   Future<List<Order>> getOrders() async {
-    Response response = await get('http://192.168.0.173:5000/get-all-orders',
-        headers: requestHeaders);
+    Response response =
+        await get('$url/get-all-orders', headers: requestHeaders);
 
     List<dynamic> ordersData = jsonDecode(response.body);
     List<Order> orders = [];
@@ -93,7 +100,7 @@ class GreenSalesData {
   Future<List<Order>> getOrdersFiltered(
       DateTime dateFrom, DateTime dateTo) async {
     Response response = await get(
-        'http://192.168.0.173:5000//get_orders/by_date/${dateFrom.millisecondsSinceEpoch}+${dateTo.millisecondsSinceEpoch}',
+        '$url/get_orders/by_date/${dateFrom.millisecondsSinceEpoch}+${dateTo.millisecondsSinceEpoch}',
         headers: requestHeaders);
 
     List<dynamic> ordersData = jsonDecode(response.body);
@@ -130,8 +137,7 @@ class GreenSalesData {
 
     products = [];
     try {
-      Response response =
-          await get('http://192.168.0.173:5000/pedido/get-list-no-login-test');
+      Response response = await get('$url/pedido/get-list-no-login-test');
       List<dynamic> data = jsonDecode(response.body);
       print(data.toString());
 
@@ -162,7 +168,7 @@ class GreenSalesData {
     requestHeaders['Content-Type'] = 'application/json';
 
     try {
-      Response response = await post('http://192.168.0.173:5000/save-order',
+      Response response = await post('$url/save-order',
           headers: postHeader, body: jsonEncode(orderData));
       return response.statusCode == 200;
     } catch (e) {
@@ -175,8 +181,8 @@ class GreenSalesData {
   Future<List<Product>> getAvailableProducts() async {
     products = [];
     try {
-      Response response = await get('http://192.168.0.173:5000/pedido/get-list',
-          headers: requestHeaders);
+      Response response =
+          await get('$url/pedido/get-list', headers: requestHeaders);
       List<dynamic> data = jsonDecode(response.body);
       print(data.toString());
 

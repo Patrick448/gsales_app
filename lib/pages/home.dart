@@ -52,7 +52,9 @@ class Home extends StatelessWidget {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       elevation: 0, primary: Colors.greenAccent[400]),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/my_account');
+                  },
                   child: Row(
                     children: [
                       Icon(Icons.person),
@@ -66,10 +68,15 @@ class Home extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                       elevation: 0, primary: Colors.greenAccent[400]),
                   onPressed: () async {
-                    //TODO: Check if logout was successful and only go back to login screen if true
-                    greenSalesData.loadSession();
-                    greenSalesData.logout();
-                    Navigator.pushReplacementNamed(context, '/login');
+                    await greenSalesData.loadSession();
+                    bool loggedOut = await greenSalesData.logout();
+                    if (loggedOut)
+                      Navigator.pushReplacementNamed(context, '/login');
+                    else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                              "Erro. Não foi possível sair da conta, tente novamente.")));
+                    }
                   },
                   child: Row(
                     children: [
