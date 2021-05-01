@@ -1,5 +1,6 @@
 import 'package:gsales_test/order.dart';
 import 'package:gsales_test/product.dart';
+import 'package:gsales_test/user.dart';
 import 'package:http/http.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -198,5 +199,18 @@ class GreenSalesData {
     }
 
     return products;
+  }
+
+  Future<User> getUserData() async {
+    Response response =
+        await get('$url/get-user-data', headers: requestHeaders);
+    Map<String, dynamic> data = jsonDecode(response.body);
+    User user = User();
+    user.name = data['name'];
+    user.email = data['email'];
+    user.id = data['id'];
+    user.level = data['level'];
+
+    return user;
   }
 }
