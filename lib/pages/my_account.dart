@@ -71,13 +71,13 @@ class _MyAccountState extends State<MyAccount> {
                   Padding(
                       padding: EdgeInsets.only(top: 5),
                       child: Text(
-                        "Número: (21) 9 0102-3658",
+                        "Número: ---------------",
                         style: TextStyle(fontSize: 16),
                       )),
                   Padding(
                       padding: EdgeInsets.only(top: 5),
                       child: Text(
-                        "Endereço: Avenida José da Silva",
+                        "Endereço: -------------------",
                         style: TextStyle(fontSize: 16),
                       )),
                 ],

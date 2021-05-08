@@ -1,24 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gsales_test/services/gsales_data.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart';
-import 'dart:convert';
-
-void loginUser(String email, String password) async {
-  Map<String, String> headers = {};
-
-  Map<String, String> body = {"email": email, "password": password};
-  Response response = await post('http://192.168.0.173:5000/login',
-      headers: headers, body: body);
-  String sessionCookie = response.headers["set-cookie"];
-
-  final prefs = await SharedPreferences.getInstance();
-  prefs.setString("session-cookie", sessionCookie);
-
-  response = await get('http://192.168.0.173:5000/pedido/get-list',
-      headers: {"cookie": prefs.getString("session-cookie")});
-  print(response.body);
-}
 
 class Login extends StatefulWidget {
   @override

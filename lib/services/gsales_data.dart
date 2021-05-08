@@ -15,7 +15,7 @@ class GreenSalesData {
   //url currently being used by the app
   String url = localUrl;
 
-  GreenSalesData() {}
+  GreenSalesData();
 
   Future<void> loadSession() async {
     final prefs = await SharedPreferences.getInstance();

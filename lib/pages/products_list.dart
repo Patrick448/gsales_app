@@ -39,6 +39,23 @@ class _ProductsListState extends State<ProductsList> {
     });
   }
 
+  void showSendingDialog(BuildContext context) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+              elevation: 0,
+              backgroundColor: Colors.white.withAlpha(0),
+              child: Container(
+                  height: 60.0,
+                  width: 60.0,
+                  child: Center(
+                      child: SpinKitRing(
+                          color: Colors.greenAccent[400], size: 50.0))));
+        });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,10 +92,11 @@ class _ProductsListState extends State<ProductsList> {
             message: "Pedido enviado!",
             action: () {
               Navigator.pop(context);
-              Navigator.pop(context);
             },
           );
-        });
+        }).then((val) {
+      Navigator.pop(context);
+    });
   }
 
   void showSendOrderFailedDialog(BuildContext context) {
@@ -170,7 +188,9 @@ class _ProductsListState extends State<ProductsList> {
                             ),
                             TextButton(
                                 onPressed: () async {
+                                  showSendingDialog(context);
                                   bool status = await sendOrder(order);
+                                  Navigator.pop(context);
                                   status
                                       ? showSendOrderSuccessDialog(context)
                                       : showSendOrderFailedDialog(context);
