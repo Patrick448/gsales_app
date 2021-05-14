@@ -8,6 +8,8 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:gsales_test/order.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
+import '../error_explainer.dart';
+
 class ProductsList extends StatefulWidget {
   @override
   _ProductsListState createState() => _ProductsListState();
@@ -28,15 +30,42 @@ class _ProductsListState extends State<ProductsList> {
   TextEditingController dialogTextEditingControler = TextEditingController();
   bool isLoading = true;
 
-  void getData() async {
+  Future<int> getData() async {
     GreenSalesData gsalesData = GreenSalesData();
     await gsalesData.loadSession();
-    List<Product> fetchedList = await gsalesData.getAvailableProducts();
+
+    ResponseData<List<Product>> fetchedData =
+        await gsalesData.getAvailableProducts();
 
     setState(() {
-      if (fetchedList.isNotEmpty) products = fetchedList;
+      if (fetchedData.data.isNotEmpty) products = fetchedData.data;
       isLoading = false;
     });
+
+    if (fetchedData.status != 200) {
+      ErrorExplainer().showErrorSnackbar(
+          code: fetchedData.status,
+          callback: () {
+            getData();
+          },
+          context: context);
+    }
+
+    return fetchedData.status;
+  }
+
+  //TODO: Maybe create a class for handling errors and displaying them to the user
+  void showErrorSnackbar({int code, Function callback}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: Duration(days: 365),
+      action: SnackBarAction(
+        label: "Tentar novamente",
+        onPressed: () {
+          callback();
+        },
+      ),
+      content: Text("Houve um erro"),
+    ));
   }
 
   void showSendingDialog(BuildContext context) {
@@ -279,7 +308,7 @@ class _QuantityPromptDialogState extends State<QuantityPromptDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-        title: Text(widget.name),
+        title: Text("${widget.name} (${formatCurrencyReal(widget.price)})"),
         actions: [
           TextButton(
               onPressed: () {

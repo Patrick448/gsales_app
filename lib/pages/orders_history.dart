@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:gsales_test/error_explainer.dart';
 import 'package:gsales_test/order.dart';
 import 'package:gsales_test/services/gsales_data.dart';
 import 'package:gsales_test/utils/conversion.dart';
@@ -18,23 +19,41 @@ class _OrdersHistoryState extends State<OrdersHistory> {
     GreenSalesData greenSalesData = GreenSalesData();
     await greenSalesData.loadSession();
 
-    List<Order> refreshedOrders = await greenSalesData.getOrders();
+    ResponseData<List<Order>> ordersData = await greenSalesData.getOrders();
     //refreshedOrders = List.from(refreshedOrders.reversed);
-    setState(() {
-      orders = refreshedOrders;
-      isLoading = false;
-    });
+
+    if (ordersData.status == 200) {
+      setState(() {
+        orders = ordersData.data;
+        isLoading = false;
+      });
+    } else {
+      ErrorExplainer().showErrorSnackbar(
+          code: ordersData.status,
+          callback: () {
+            getData();
+          },
+          context: context);
+    }
   }
 
   Future<void> getFilteredOrders(DateTime timeFrom, DateTime timeTo) async {
     GreenSalesData greenSalesData = GreenSalesData();
     await greenSalesData.loadSession();
-    List<Order> filteredOrderList = await greenSalesData.getOrdersFiltered(
-        timeFrom, timeTo.add(Duration(seconds: 86399)));
+    ResponseData<List<Order>> filteredOrdersData = await greenSalesData
+        .getOrdersFiltered(timeFrom, timeTo.add(Duration(seconds: 86399)));
 
-    setState(() {
-      orders = filteredOrderList;
-    });
+    if (filteredOrdersData.status == 200)
+      setState(() {
+        orders = filteredOrdersData.data;
+      });
+    else
+      ErrorExplainer().showErrorSnackbar(
+          code: filteredOrdersData.status,
+          callback: () {
+            getFilteredOrders(timeFrom, timeTo);
+          },
+          context: context);
   }
 
   @override

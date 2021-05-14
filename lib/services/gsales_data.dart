@@ -65,40 +65,51 @@ class GreenSalesData {
     }
   }
 
-  Future<List<Order>> getOrders() async {
-    Response response =
-        await get('$url/get-all-orders', headers: requestHeaders);
-
-    List<dynamic> ordersData = jsonDecode(response.body);
+  Future<ResponseData<List<Order>>> getOrders() async {
+    ResponseData<List<Order>> responseData = ResponseData();
     List<Order> orders = [];
-    print(ordersData);
 
-    for (int i = 0; i < ordersData.length; i++) {
-      Map orderData = ordersData[i];
-      List<Product> products = [];
+    try {
+      Response response =
+          await get('$url/get-all-orders', headers: requestHeaders);
 
-      for (int j = 0; j < orderData['items'].length; j++) {
-        Map productData = orderData['items'][j];
+      List<dynamic> ordersData = jsonDecode(response.body);
 
-        Product product = Product(
-            productData['name'], double.parse(productData['price'].toString()));
-        product.quant = int.parse(productData['quant'].toString());
-        products.add(product);
+      print(ordersData);
+
+      for (int i = 0; i < ordersData.length; i++) {
+        Map orderData = ordersData[i];
+        List<Product> products = [];
+
+        for (int j = 0; j < orderData['items'].length; j++) {
+          Map productData = orderData['items'][j];
+
+          Product product = Product(productData['name'],
+              double.parse(productData['price'].toString()));
+          product.quant = int.parse(productData['quant'].toString());
+          products.add(product);
+        }
+
+        Order order = Order(
+            dateMillisseconds: orderData['timeStamp'],
+            user: orderData['user_name'],
+            totalValue: orderData['total'],
+            orderId: orderData['id'],
+            products: products);
+        orders.add(order);
+        responseData.status = response.statusCode;
       }
-
-      Order order = Order(
-          dateMillisseconds: orderData['timeStamp'],
-          user: orderData['user_name'],
-          totalValue: orderData['total'],
-          orderId: orderData['id'],
-          products: products);
-      orders.add(order);
+    } catch (e) {
+      print("getOrders function caught an error: $e");
+      responseData.status = 0;
+    } finally {
+      responseData.data = orders;
     }
 
-    return orders;
+    return responseData;
   }
 
-  Future<List<Order>> getOrdersFiltered(
+  Future<ResponseData<List<Order>>> getOrdersFiltered(
       DateTime dateFrom, DateTime dateTo) async {
     Response response = await get(
         '$url/get_orders/by_date/${dateFrom.millisecondsSinceEpoch}+${dateTo.millisecondsSinceEpoch}',
@@ -130,7 +141,7 @@ class GreenSalesData {
       orders.add(order);
     }
 
-    return orders;
+    return ResponseData.from(status: response.statusCode, data: orders);
   }
 
   Future<void> getData() async {
@@ -179,14 +190,23 @@ class GreenSalesData {
     return false;
   }
 
-  Future<List<Product>> getAvailableProducts() async {
+  Future<ResponseData<List<Product>>> getAvailableProducts() async {
     products = [];
+    ResponseData<List<Product>> responseData = ResponseData();
+
     try {
+      //get data from server
       Response response =
           await get('$url/pedido/get-list', headers: requestHeaders);
+      //decode data
       List<dynamic> data = jsonDecode(response.body);
-      print(data.toString());
+      responseData.status = response.statusCode;
 
+      //debug
+      print(data.toString());
+      print("Data request status: ${response.statusCode}");
+
+      //iterate through the data and add to products list
       for (int i = 0; i < data.length; i++) {
         Product product = Product("${data[i]['name']}", data[i]['price']);
         product.id = data[i]['id'];
@@ -194,11 +214,12 @@ class GreenSalesData {
         products.add(product);
       }
     } catch (e) {
+      responseData.status = 0;
       print(
           "Could not get data. Green Sales data service caught an error: \n $e");
     }
-
-    return products;
+    responseData.data = products;
+    return responseData;
   }
 
   Future<User> getUserData() async {
@@ -213,4 +234,11 @@ class GreenSalesData {
 
     return user;
   }
+}
+
+class ResponseData<T> {
+  T data;
+  int status;
+  ResponseData.from({this.status, this.data});
+  ResponseData();
 }
